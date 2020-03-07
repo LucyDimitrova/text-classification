@@ -17,9 +17,6 @@ from memory_profiler import profile
 
 # download stopwords
 nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('punkt')
-
 
 class Model:
     """Abstract model to use as a baseline for testing out different classifiers"""
