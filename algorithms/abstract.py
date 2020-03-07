@@ -18,6 +18,7 @@ from memory_profiler import profile
 # download stopwords
 nltk.download('stopwords')
 
+
 class Model:
     """Abstract model to use as a baseline for testing out different classifiers"""
     def __init__(self):
