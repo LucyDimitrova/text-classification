@@ -1,31 +1,24 @@
 import datetime
 import joblib
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer, TfidfVectorizer
-from sklearn.ensemble import AdaBoostClassifier
-from memory_profiler import profile
+
+# NLTK
 import nltk
-from nltk import word_tokenize
-from nltk.stem import WordNetLemmatizer
 from nltk.corpus import stopwords
 
+# scikit-learn
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+
+# memory usage monitoring
+from memory_profiler import profile
+
+# download stopwords
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('punkt')
-
-
-class LemmaTokenizer:
-    def __init__(self):
-        self.wnl = WordNetLemmatizer()
-
-    def __call__(self, doc):
-        return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
 
 
 class Model:
@@ -49,7 +42,7 @@ class Model:
         print(f"{self.name} training start: {start}")
         pipeline = Pipeline(
             [('tfidf',
-              TfidfVectorizer(tokenizer=LemmaTokenizer(), analyzer='word', sublinear_tf=True, stop_words=set(stopwords.words('english')))),
+              TfidfVectorizer(analyzer='word', sublinear_tf=True, stop_words=set(stopwords.words('english')))),
              ('clf', clf)])
         pipeline.fit(X_train, y_train)
         end = datetime.datetime.now()
@@ -63,6 +56,7 @@ class Model:
     def train(self, X_train, y_train):
         pass
 
+    @profile
     def train_ensemble(self, X_train, y_train, clf):
         """Train model using the given training data and classifier in an AdaBoost ensemble
 
@@ -75,13 +69,9 @@ class Model:
         print(f"{self.name} ensemble training start: {start}")
         clf = AdaBoostClassifier(clf)
         pipeline = Pipeline(
-            [('vect', CountVectorizer(stop_words=set(stopwords.words('english')))), ('tfidf', TfidfTransformer()),
+            [('tfidf',
+              TfidfVectorizer(analyzer='word', sublinear_tf=True, stop_words=set(stopwords.words('english')))),
              ('clf', clf)])
-        # pipeline = Pipeline(
-        #     [('tfidf',
-        #       TfidfVectorizer(tokenizer=LemmaTokenizer(), analyzer='word', sublinear_tf=True,
-        #                       stop_words=set(stopwords.words('english')))),
-        #      ('clf', clf)])
         pipeline.fit(X_train, y_train)
         end = datetime.datetime.now()
         print(f"{self.name} ensemble training еnd: {end}")
@@ -102,7 +92,7 @@ class Model:
 
     @profile
     def save(self, output_name):
-        """Save classifier into a file
+        """Save pipeline into a file
 
         :param output_name: name to be used for the file
         :return: tuple, output path to saved file and file name
@@ -126,16 +116,6 @@ class Model:
     def confusion_matrix(self, y_true, y_pred):
         return confusion_matrix(y_true, y_pred)
 
-    def confusion_matrix_plt(self, y_true, y_pred):
-        array = self.confusion_matrix(y_true, y_pred)
-        columns = np.unique(y_true)
-        cm = np.array(array)
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        df_cm = pd.DataFrame(cm, index=columns, columns=columns)
-        fig, ax = plt.subplots(figsize=(50, 10))
-        sns.heatmap(df_cm, cmap='Oranges', annot=True, ax=ax)
-        plt.show()
-
     def output_performance(self, X_train, y_train, X_test, y_test):
         y_pred = self.predict(X_test)
         print(self.metrics(y_test, y_pred))
@@ -153,8 +133,7 @@ class Model:
         :return: Model Instance
         """
         pipeline = Pipeline([
-            ('vect', CountVectorizer(stop_words='english')),
-            ('tfidf', TfidfTransformer()),
+            ('tfidf', TfidfVectorizer(analyzer='word', sublinear_tf=True, stop_words=set(stopwords.words('english')))),
             ('clf', classifier)
         ])
         start = datetime.datetime.now()
