@@ -3,10 +3,12 @@ from sklearn.linear_model import LogisticRegression, SGDClassifier, LogisticRegr
 
 from algorithms.abstract import Model
 
+# memory monitoring
 from memory_profiler import profile
 
 
 class LogRegression(Model):
+    """Logistic Regression classfier, plus SGDClassifier and cross-validation"""
     def __init__(self):
         super().__init__()
         self.clf = None
@@ -24,9 +26,18 @@ class LogRegression(Model):
 
     @profile
     def train(self, X_train, y_train):
+        """Fit classifier"""
         # log_clf = SGDClassifier(loss='log', alpha=0.00001)
         log_clf = LogisticRegression(solver='saga', C=10)
         return super().fit(X_train, y_train, log_clf)
+
+    def tune(self, X_train, y_train):
+        """HyperParams tuning/optimization"""
+        params = self.parameters
+        classifier = SGDClassifier(loss='log', alpha=0.00001)
+        # classifier = LogisticRegression()
+        self.clf = super().optimize(X_train, y_train, params, classifier, search='rs')
+        return self
 
     def cross_validate(self, X_train, y_train):
         """Train LogisticRegression with cross-validation
@@ -44,11 +55,4 @@ class LogRegression(Model):
         print(f"Logistic Regression with cross-validation training time: {end - start}")
 
         self.clf = log_clf
-        return self
-
-    def tune(self, X_train, y_train):
-        params = self.parameters
-        classifier = SGDClassifier(loss='log', alpha=0.00001)
-        # classifier = LogisticRegression()
-        self.clf = super().optimize(X_train, y_train, params, classifier, search='rs')
         return self
