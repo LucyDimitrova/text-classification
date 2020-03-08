@@ -22,10 +22,13 @@ nltk.download('stopwords')
 class Model:
     """Abstract model to use as a baseline for testing out different classifiers"""
     def __init__(self):
-        self.clf = None
-        self.parameters = {}
         self.name = ''
+        self.parameters = {}
+        self.clf = None
         self.pipeline = None
+
+    def train(self, X_train, y_train):
+        pass
 
     @profile
     def fit(self, X_train, y_train, clf):
@@ -51,9 +54,6 @@ class Model:
         self.clf = pipeline.named_steps['clf']
         return self
 
-    def train(self, X_train, y_train):
-        pass
-
     @profile
     def train_ensemble(self, X_train, y_train, clf):
         """Train model using the given training data and classifier in an AdaBoost ensemble
@@ -64,7 +64,7 @@ class Model:
         :return Model instance
         """
         start = datetime.datetime.now()
-        print(f"{self.name} ensemble training start: {start}")
+        print(f"Ensemble of {self.name} training start: {start}")
         clf = AdaBoostClassifier(clf)
         pipeline = Pipeline(
             [('tfidf',
@@ -72,8 +72,8 @@ class Model:
              ('clf', clf)])
         pipeline.fit(X_train, y_train)
         end = datetime.datetime.now()
-        print(f"{self.name} ensemble training еnd: {end}")
-        print(f"{self.name} ensemble training time: ", {end - start})
+        print(f"Ensemble of {self.name} training еnd: {end}")
+        print(f"Ensemble of {self.name} ensemble training time: ", {end - start})
 
         self.pipeline = pipeline
         self.clf = pipeline.named_steps['clf']
@@ -102,33 +102,64 @@ class Model:
         return output_path, filename
 
     def load(self, path):
+        """Load pipeline from a file
+
+        :param path: path to file
+        :return: Model instance
+        """
         self.pipeline = joblib.load(path)
         return self
 
     def metrics(self, y_test, y_pred):
+        """Get classification report
+
+        :param y_test: true labels
+        :param y_pred: predicted labels
+        :return: text report showing the main classification metrics
+        """
         return classification_report(y_test, y_pred, digits=4)
 
     def accuracy(self, x, y):
+        """Get accuracy score
+
+        :param x: features
+        :param y: labels
+        :return: accuracy classification score
+        """
         return accuracy_score(y, self.predict(x))
 
-    def confusion_matrix(self, y_true, y_pred):
-        return confusion_matrix(y_true, y_pred)
+    def confusion_matrix(self, y_test, y_pred):
+        """Get confusion matrix
+
+        :param y_true: true labels
+        :param y_pred: predicted labels
+        :return: confusion matrix
+        """
+        return confusion_matrix(y_test, y_pred)
 
     def output_performance(self, X_train, y_train, X_test, y_test):
+        """Print general performance metrics
+
+        :param X_train: set of training example features
+        :param y_train: set of training labels
+        :param X_test: set of testing example features
+        :param y_test: set of testing labels
+        :return:
+        """
         y_pred = self.predict(X_test)
         print(self.metrics(y_test, y_pred))
-        print('Train Accuracy = ', self.accuracy(X_train, y_train))
-        print('Test Accuracy = ', self.accuracy(X_test, y_test))
+        print('Train Accuracy: ', self.accuracy(X_train, y_train))
+        print('Test Accuracy: ', self.accuracy(X_test, y_test))
 
     def optimize(self, X_train, y_train, params, classifier, search='gs'):
         """Hyperparameter tuning optimization
 
         :param X_train: set of features
         :param y_train: set of labels
-        :param params: hyperparams to be searched
+        :param params: hyperparameters to be optimized over
         :param classifier: classifier to be used
-        :param search: GridSearch (the default) or Randomized Search
-        :return: Model Instance
+        :param search: method to be used - GridSearch (the default) or Randomized Search
+        :return: Model instance
         """
         pipeline = Pipeline([
             ('tfidf', TfidfVectorizer(analyzer='word', sublinear_tf=True, stop_words=set(stopwords.words('english')))),
@@ -142,7 +173,7 @@ class Model:
         search.fit(X_train, y_train)
         end = datetime.datetime.now()
         print(f"Optimization end: {end}")
-        print(f"Optimization training time: {end - start}")
+        print(f"Optimization time: {end - start}")
         best_parameters = search.best_estimator_.get_params()
         print("Best parameters set:")
         for param_name in sorted(params.keys()):
@@ -155,6 +186,12 @@ class Model:
         pass
 
     def test(self, X_test, y_test):
+        """Print performance for test set
+
+        :param X_test: test features
+        :param y_test: test labels
+        :return:
+        """
         y_pred = self.predict(X_test)
         print(self.metrics(y_test, y_pred))
         print('Test Accuracy = ', self.accuracy(X_test, y_test))

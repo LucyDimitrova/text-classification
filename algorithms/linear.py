@@ -7,11 +7,11 @@ from algorithms.abstract import Model
 from memory_profiler import profile
 
 
-class LogRegression(Model):
-    """Logistic Regression classfier, plus SGDClassifier and cross-validation"""
+class LogReg(Model):
+    """Logistic Regression classifier, plus SGDClassifier and cross-validation"""
     def __init__(self):
         super().__init__()
-        self.clf = None
+        self.name = 'Logistic Regression'
         self.parameters = {
             'tfidf__use_idf': (True, False),
             'tfidf__norm': ('l1', 'l2'),
@@ -22,37 +22,49 @@ class LogRegression(Model):
             'clf__C': (0.01, 1.0, 10, 100),
             'clf__max_iter': (10, 100, 1000),
         }
-        self.name = 'Logistic Regression'
+        self.clf = None
 
     @profile
     def train(self, X_train, y_train):
-        """Fit classifier"""
+        """Fit classifier
+
+        :param X_train: set of features
+        :param y_train: set of labels
+        :return Model instance
+        """
         # log_clf = SGDClassifier(loss='log', alpha=0.00001)
         log_clf = LogisticRegression(solver='saga', C=10)
         return super().fit(X_train, y_train, log_clf)
 
+    @profile
     def tune(self, X_train, y_train):
-        """HyperParams tuning/optimization"""
+        """HyperParams tuning/optimization
+
+        :param X_train: set of features
+        :param y_train: set of labels
+        :return Model instance
+        """
         params = self.parameters
         classifier = SGDClassifier(loss='log', alpha=0.00001)
         # classifier = LogisticRegression()
         self.clf = super().optimize(X_train, y_train, params, classifier, search='rs')
         return self
 
+    @profile
     def cross_validate(self, X_train, y_train):
         """Train LogisticRegression with cross-validation
 
         :param X_train: set of features
         :param y_train: set of labels
-        :return: Model Instance
+        :return: Model instance
         """
         start = datetime.datetime.now()
-        print(f"Logistic Regression with cross-validation training start: {start}")
+        print(f"Cross-validated {self.name} training start: {start}")
         log_clf = LogisticRegressionCV(cv=5, solver='saga', Cs=10)
         log_clf.fit(X_train, y_train)
         end = datetime.datetime.now()
-        print(f"Logistic Regression with cross-validation training end: {end}")
-        print(f"Logistic Regression with cross-validation training time: {end - start}")
+        print(f"Cross-validated {self.name} training end: {end}")
+        print(f"Cross-validated {self.name} training time: {end - start}")
 
         self.clf = log_clf
         return self

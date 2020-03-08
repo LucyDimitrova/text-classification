@@ -2,27 +2,28 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-def distribution(df, criteria):
-    """Show table distribution by some criteria
+def distribution(df, label):
+    """Get number of examples per label
 
     :param df: dataframe
-    :param criteria: dataframe column name to group values by
+    :param label: dataframe column name to group values by
     :return: dataframe
     """
-    return df.groupby([criteria]).count()
+    return df.groupby([label]).count()
 
 
-def topic_distribution(df, **kwargs):
-    """Show barplot with number of texts per topic
+def label_distribution(df, label, **kwargs):
+    """Show barplot with number of examples per label
 
     :param df: dataframe
+    :param label: label column name
     :param kwargs: output_path - path to save the plot; name - title for the plot
     :return:
     """
     dt = pd.concat([df], axis=0)
-    dt.category.value_counts().plot(figsize=(15, 10), kind='bar', color='green')
-    plt.xlabel('Topic')
-    plt.ylabel('Number of Items Per Topic')
+    dt[label].value_counts().plot(figsize=(15, 10), kind='bar', color='yellow')
+    plt.xlabel('Label')
+    plt.ylabel('Number of Examples Per Label')
     plt.subplots_adjust(top=0.9, bottom=0.28)
     if 'name' in kwargs.keys():
         plt.title(kwargs['name'])
