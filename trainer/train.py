@@ -15,8 +15,9 @@ load_dotenv()
 dataset_path = os.getenv("DATASET")
 test_case = os.getenv("TEST_CASE")
 
+# create log file
 date = datetime.today()
-sys.stdout = Logger(f'logs/{test_case}_{date}')
+sys.stdout = Logger(f'logs/{test_case}_{date}.txt')
 
 # load dataset
 df = load_dataframe(dataset_path, chunksize=100000)
@@ -24,8 +25,8 @@ print(f'Dataset:\n {df}')
 
 # visualize data
 try:
-    plot_path = f'visualization/distribution-{test_case}.png'
-    label_distribution(df, name='Text examples per topic', output_path=plot_path)
+    chart_path = f'visualization/distribution-{test_case}.png'
+    label_distribution(df, name='Text examples per topic', output_path=chart_path)
 except Exception as err:
     print('There was an error plotting distribution')
 
@@ -47,6 +48,9 @@ file_path, file_name = m.save(test_case)
 
 # output performance metrics
 m.output_performance(X_train, y_train, X_test, y_test)
+
+# stop logging
+sys.stdout = sys.__stdout__
 
 
 

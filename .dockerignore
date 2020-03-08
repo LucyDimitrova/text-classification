@@ -1,0 +1,9 @@
+# Ignore everything
+**
+
+# Allow files used for training in container
+!/algorithms/**
+!/trainer/**
+!/models
+!/logs
+!/preprocessing
