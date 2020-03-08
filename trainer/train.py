@@ -1,8 +1,11 @@
 import os
+import sys
+from datetime import datetime
 from dotenv import load_dotenv
 
 from sklearn.model_selection import train_test_split
 
+from logs.logger import Logger
 from preprocessing.reader import load_dataframe
 from preprocessing.visualize import label_distribution
 from algorithms.linear import LogReg
@@ -11,6 +14,9 @@ load_dotenv()
 
 dataset_path = os.getenv("DATASET")
 test_case = os.getenv("TEST_CASE")
+
+date = datetime.today()
+sys.stdout = Logger(f'logs/{test_case}_{date}')
 
 # load dataset
 df = load_dataframe(dataset_path, chunksize=100000)
@@ -37,8 +43,7 @@ model = LogReg()
 m = model.train(X_train, y_train)
 
 # save model
-model_name = 'Logistic Regression'
-file_path, file_name = m.save(model_name)
+file_path, file_name = m.save(test_case)
 
 # output performance metrics
 m.output_performance(X_train, y_train, X_test, y_test)
