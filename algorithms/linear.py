@@ -1,5 +1,6 @@
 import datetime
 from sklearn.linear_model import LogisticRegression, SGDClassifier, LogisticRegressionCV
+from sklearn.naive_bayes import MultinomialNB
 
 from algorithms.abstract import Model
 
@@ -67,4 +68,27 @@ class LogReg(Model):
         print(f"Cross-validated {self.name} training time: {end - start}")
 
         self.clf = log_clf
+        return self
+
+
+class MultinomialBayes(Model):
+    def __init__(self):
+        super().__init__()
+        self.clf = None
+        self.parameters = {
+            # 'vect__ngram_range': [(1, 1), (1, 2)],
+            # 'tfidf__use_idf': (True, False),
+            'clf__alpha': (1e-2, 1e-3, 1e-5)
+        }
+        self.name = 'Multinomial Bayes'
+
+    def train(self, X_train, y_train):
+        bayes_clf = MultinomialNB(alpha=0.001)
+        self.clf = bayes_clf
+        return super().fit(X_train, y_train, bayes_clf)
+
+    def tune(self, X_train, y_train):
+        params = self.parameters
+        classifier = MultinomialNB()
+        self.clf = super().optimize(X_train, y_train, params, classifier, search='rs')
         return self
