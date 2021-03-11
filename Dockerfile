@@ -16,4 +16,4 @@ COPY /preprocessing /app/preprocessing
 
 RUN pip install -r requirements.txt
 
-CMD [ "python", "-u", "-m", "memory_profiler", "main.py" ]
+CMD [ "python", "-u", "-m", "memory_profiler", "train.py" ]
