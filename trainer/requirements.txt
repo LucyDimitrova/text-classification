@@ -5,4 +5,4 @@ pandas==0.25.3
 python-dotenv==0.10.3
 memory-profiler==0.55.0
 matplotlib==3.1.1
-joblib==0.14.0
+joblib==1.2.0
